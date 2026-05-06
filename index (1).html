@@ -581,6 +581,34 @@
 
   .toast.show { transform: translateX(-50%) translateY(0); }
 
+  /* BACKUP BAR */
+  .backup-bar {
+    display: flex;
+    gap: 10px;
+    margin-top: 32px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+  }
+
+  .btn-backup {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    border-radius: 8px;
+    padding: 11px;
+    font-family: 'Barlow', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    text-align: center;
+    transition: border-color 0.2s, color 0.2s;
+    display: block;
+  }
+
+  .btn-backup:active { border-color: var(--accent); color: var(--accent); }
+
   /* Divider line decoration */
   .section-line {
     display: flex;
@@ -625,6 +653,14 @@
   <div class="section-line"><span class="section-line-text">Arsenal</span></div>
 
   <div class="golpes-list" id="golpesList"></div>
+
+  <div class="backup-bar">
+    <button class="btn-backup" onclick="exportarJSON()">⬇ Exportar Backup</button>
+    <label class="btn-backup btn-import">
+      ⬆ Importar Backup
+      <input type="file" accept=".json" id="inputImport" onchange="importarJSON(event)" style="display:none">
+    </label>
+  </div>
 </main>
 
 <!-- MODAL FORM -->
@@ -906,6 +942,41 @@ document.getElementById('modalOverlay').addEventListener('click', function(e) {
 document.getElementById('confirmOverlay').addEventListener('click', function(e) {
   if (e.target === this) closeConfirm();
 });
+
+// ── BACKUP ─────────────────────────────────────────────
+function exportarJSON() {
+  if (!golpes.length) { showToast('Nenhum golpe para exportar!'); return; }
+  const data = JSON.stringify(golpes, null, 2);
+  const blob = new Blob([data], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const date = new Date().toISOString().slice(0,10);
+  a.href = url;
+  a.download = `bjjbook-backup-${date}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('Backup exportado!');
+}
+
+function importarJSON(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const dados = JSON.parse(e.target.result);
+      if (!Array.isArray(dados)) throw new Error();
+      golpes = dados;
+      save();
+      render();
+      showToast(`${dados.length} golpes restaurados!`);
+    } catch {
+      showToast('Arquivo inválido!');
+    }
+    event.target.value = '';
+  };
+  reader.readAsText(file);
+}
 
 // ── INIT ───────────────────────────────────────────────
 load();
