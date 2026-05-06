@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="BJJ Book">
+<title>BJJ Book</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:ital,wght@0,300;0,400;0,600;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --surface: #111111;
+    --surface2: #1a1a1a;
+    --border: #2a2a2a;
+    --accent: #c8a96e;
+    --accent2: #8b1a1a;
+    --text: #e8e0d4;
+    --text-muted: #7a7068;
+    --danger: #8b1a1a;
+    --easy: #2d6a4f;
+    --medium: #b5590a;
+    --hard: #8b1a1a;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Barlow', sans-serif;
+    font-weight: 300;
+    min-height: 100dvh;
+    overflow-x: hidden;
+  }
+
+  /* Texture overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+    opacity: 0.03;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* HEADER */
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(10,10,10,0.95);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 16px;
+  }
+
+  .header-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 58px;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    letter-spacing: 3px;
+    color: var(--accent);
+    line-height: 1;
+  }
+
+  .logo span {
+    color: var(--text-muted);
+    font-size: 11px;
+    letter-spacing: 4px;
+    display: block;
+    margin-top: -2px;
+  }
+
+  .btn-add {
+    background: var(--accent);
+    color: #0a0a0a;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 16px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 16px;
+    letter-spacing: 1.5px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  .btn-add:active { opacity: 0.7; }
+
+  /* MAIN */
+  main {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 16px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* STATS BAR */
+  .stats-bar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+
+  .stat-pill {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 12px;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+  }
+
+  .stat-pill strong {
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  /* FILTER TABS */
+  .filter-wrap {
+    margin-bottom: 20px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .filter-wrap::-webkit-scrollbar { display: none; }
+
+  .filter-tabs {
+    display: flex;
+    gap: 8px;
+    width: max-content;
+  }
+
+  .filter-tab {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    border-radius: 6px;
+    padding: 7px 14px;
+    font-family: 'Barlow', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .filter-tab.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #0a0a0a;
+  }
+
+  /* GOLPE CARD */
+  .golpes-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .golpe-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+    cursor: pointer;
+  }
+
+  .golpe-card:active { border-color: var(--accent); }
+
+  .card-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 16px;
+  }
+
+  .category-badge {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 3px 8px;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    white-space: nowrap;
+    margin-top: 2px;
+  }
+
+  .card-title-wrap { flex: 1; min-width: 0; }
+
+  .card-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    letter-spacing: 1px;
+    color: var(--text);
+    line-height: 1.1;
+  }
+
+  .card-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 4px;
+  }
+
+  .diff-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .diff-dot.facil { background: var(--easy); }
+  .diff-dot.medio { background: var(--medium); }
+  .diff-dot.dificil { background: var(--hard); }
+
+  .diff-label {
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .card-date {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-left: auto;
+  }
+
+  .card-chevron {
+    color: var(--text-muted);
+    font-size: 18px;
+    transition: transform 0.3s;
+    flex-shrink: 0;
+  }
+
+  .golpe-card.expanded .card-chevron { transform: rotate(180deg); }
+
+  /* Expandable body */
+  .card-body {
+    display: none;
+    border-top: 1px solid var(--border);
+  }
+
+  .golpe-card.expanded .card-body { display: block; }
+
+  /* Video embed */
+  .video-wrap {
+    position: relative;
+    width: 100%;
+    padding-bottom: 56.25%;
+    background: #000;
+  }
+
+  .video-wrap iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+  }
+
+  .card-content {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .content-block {}
+
+  .content-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 6px;
+  }
+
+  .content-text {
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--text);
+    white-space: pre-wrap;
+  }
+
+  .card-actions {
+    display: flex;
+    gap: 8px;
+    padding: 12px 16px;
+    border-top: 1px solid var(--border);
+  }
+
+  .btn-edit {
+    flex: 1;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 6px;
+    padding: 9px;
+    font-family: 'Barlow', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    cursor: pointer;
+  }
+
+  .btn-delete {
+    background: transparent;
+    border: 1px solid #3a1a1a;
+    color: #8b4444;
+    border-radius: 6px;
+    padding: 9px 14px;
+    font-family: 'Barlow', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  /* EMPTY STATE */
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+  }
+
+  .empty-icon {
+    font-size: 56px;
+    margin-bottom: 16px;
+    display: block;
+  }
+
+  .empty-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    letter-spacing: 2px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+
+  .empty-sub {
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  /* MODAL */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 200;
+    backdrop-filter: blur(4px);
+    overflow-y: auto;
+  }
+
+  .modal-overlay.open { display: flex; align-items: flex-start; justify-content: center; padding: 20px 16px; }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    width: 100%;
+    max-width: 560px;
+    overflow: hidden;
+    animation: slideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  @keyframes slideUp {
+    from { transform: translateY(30px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .modal-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 24px;
+    letter-spacing: 2px;
+    color: var(--accent);
+  }
+
+  .btn-close {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 24px;
+    cursor: pointer;
+    line-height: 1;
+    padding: 4px;
+  }
+
+  .modal-body { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+
+  .form-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  .form-input, .form-select, .form-textarea {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'Barlow', sans-serif;
+    font-size: 15px;
+    font-weight: 300;
+    padding: 12px 14px;
+    outline: none;
+    width: 100%;
+    transition: border-color 0.2s;
+    -webkit-appearance: none;
+  }
+
+  .form-input:focus, .form-select:focus, .form-textarea:focus {
+    border-color: var(--accent);
+  }
+
+  .form-textarea { resize: vertical; min-height: 90px; }
+
+  .form-select option { background: var(--surface2); }
+
+  /* Difficulty selector */
+  .diff-selector { display: flex; gap: 8px; }
+
+  .diff-btn {
+    flex: 1;
+    padding: 10px 6px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text-muted);
+    font-family: 'Barlow', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+  }
+
+  .diff-btn.sel-facil { background: var(--easy); border-color: var(--easy); color: #fff; }
+  .diff-btn.sel-medio { background: var(--medium); border-color: var(--medium); color: #fff; }
+  .diff-btn.sel-dificil { background: var(--hard); border-color: var(--hard); color: #fff; }
+
+  .modal-footer {
+    padding: 16px 20px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 10px;
+  }
+
+  .btn-cancel {
+    flex: 1;
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    border-radius: 8px;
+    padding: 13px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px;
+    letter-spacing: 1.5px;
+    cursor: pointer;
+  }
+
+  .btn-save {
+    flex: 2;
+    background: var(--accent);
+    border: none;
+    color: #0a0a0a;
+    border-radius: 8px;
+    padding: 13px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px;
+    letter-spacing: 1.5px;
+    cursor: pointer;
+  }
+
+  /* CONFIRM MODAL */
+  .confirm-modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    width: 100%;
+    max-width: 380px;
+    padding: 28px 24px;
+    text-align: center;
+    animation: slideUp 0.25s ease;
+    margin: auto;
+  }
+
+  .confirm-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 26px;
+    letter-spacing: 2px;
+    color: var(--text);
+    margin-bottom: 10px;
+  }
+
+  .confirm-sub {
+    font-size: 14px;
+    color: var(--text-muted);
+    margin-bottom: 24px;
+    line-height: 1.6;
+  }
+
+  .confirm-actions { display: flex; gap: 10px; }
+
+  .btn-confirm-cancel {
+    flex: 1;
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    border-radius: 8px;
+    padding: 12px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 17px;
+    letter-spacing: 1px;
+    cursor: pointer;
+  }
+
+  .btn-confirm-delete {
+    flex: 1;
+    background: var(--danger);
+    border: none;
+    color: #fff;
+    border-radius: 8px;
+    padding: 12px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 17px;
+    letter-spacing: 1px;
+    cursor: pointer;
+  }
+
+  /* TOAST */
+  .toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--accent);
+    color: #0a0a0a;
+    padding: 12px 24px;
+    border-radius: 30px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 16px;
+    letter-spacing: 1.5px;
+    z-index: 999;
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    white-space: nowrap;
+  }
+
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* BACKUP BAR */
+  .backup-bar {
+    display: flex;
+    gap: 10px;
+    margin-top: 32px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+  }
+
+  .btn-backup {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    border-radius: 8px;
+    padding: 11px;
+    font-family: 'Barlow', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    text-align: center;
+    transition: border-color 0.2s, color 0.2s;
+    display: block;
+  }
+
+  .btn-backup:active { border-color: var(--accent); color: var(--accent); }
+
+  /* Divider line decoration */
+  .section-line {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .section-line::before, .section-line::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+  .section-line-text {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="logo">
+      BJJ Book
+      <span>Minha Biblioteca</span>
+    </div>
+    <button class="btn-add" onclick="openModal()">+ GOLPE</button>
+  </div>
+</header>
+
+<main>
+  <div class="stats-bar" id="statsBar"></div>
+
+  <div class="filter-wrap">
+    <div class="filter-tabs" id="filterTabs"></div>
+  </div>
+
+  <div class="section-line"><span class="section-line-text">Arsenal</span></div>
+
+  <div class="golpes-list" id="golpesList"></div>
+
+  <div class="backup-bar">
+    <button class="btn-backup" onclick="exportarJSON()">⬇ Exportar Backup</button>
+    <label class="btn-backup btn-import">
+      ⬆ Importar Backup
+      <input type="file" accept=".json" id="inputImport" onchange="importarJSON(event)" style="display:none">
+    </label>
+  </div>
+</main>
+
+<!-- MODAL FORM -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="modalTitle">Novo Golpe</span>
+      <button class="btn-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Nome do Golpe</label>
+        <input class="form-input" id="inputNome" placeholder="Ex: Triângulo, Armlock..." autocomplete="off">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Categoria</label>
+        <select class="form-select" id="inputCategoria">
+          <option value="">Selecionar...</option>
+          <option value="Finalização">Finalização</option>
+          <option value="Guarda">Guarda</option>
+          <option value="Passagem">Passagem</option>
+          <option value="Raspagem">Raspagem</option>
+          <option value="Queda">Queda</option>
+          <option value="Controle">Controle</option>
+          <option value="Defesa">Defesa</option>
+          <option value="Outro">Outro</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Dificuldade</label>
+        <div class="diff-selector">
+          <button class="diff-btn" id="btnFacil" onclick="selectDiff('Fácil')">Fácil</button>
+          <button class="diff-btn" id="btnMedio" onclick="selectDiff('Médio')">Médio</button>
+          <button class="diff-btn" id="btnDificil" onclick="selectDiff('Difícil')">Difícil</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Link do YouTube</label>
+        <input class="form-input" id="inputVideo" placeholder="https://youtube.com/watch?v=..." autocomplete="off" type="url">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Descrição / Passo a Passo</label>
+        <textarea class="form-textarea" id="inputDescricao" placeholder="Como executar o golpe..."></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Anotações Livres</label>
+        <textarea class="form-textarea" id="inputAnotacoes" placeholder="Dicas, detalhes, quando usar..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
+      <button class="btn-save" onclick="salvarGolpe()">Salvar Golpe</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM MODAL -->
+<div class="modal-overlay" id="confirmOverlay">
+  <div class="confirm-modal">
+    <div class="confirm-title">Deletar Golpe?</div>
+    <div class="confirm-sub">Essa ação não pode ser desfeita.<br>O golpe será removido permanentemente.</div>
+    <div class="confirm-actions">
+      <button class="btn-confirm-cancel" onclick="closeConfirm()">Cancelar</button>
+      <button class="btn-confirm-delete" onclick="confirmarDelete()">Deletar</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+const STORAGE_KEY = 'bjj_dojo_v1';
+let golpes = [];
+let filtroAtivo = 'Todos';
+let editingId = null;
+let deletingId = null;
+let diffSelecionada = '';
+
+// ── STORAGE ──────────────────────────────────────────
+function load() {
+  try { golpes = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+  catch { golpes = []; }
+}
+
+function save() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(golpes));
+}
+
+// ── YOUTUBE UTIL ──────────────────────────────────────
+function getYoutubeId(url) {
+  if (!url) return null;
+  const m = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([^&?/\s]{11})/);
+  return m ? m[1] : null;
+}
+
+// ── RENDER ────────────────────────────────────────────
+function render() {
+  renderStats();
+  renderFilters();
+  renderList();
+}
+
+function renderStats() {
+  const total = golpes.length;
+  const cats = [...new Set(golpes.map(g => g.categoria).filter(Boolean))].length;
+  document.getElementById('statsBar').innerHTML = `
+    <div class="stat-pill"><strong>${total}</strong> golpes</div>
+    <div class="stat-pill"><strong>${cats}</strong> categorias</div>
+  `;
+}
+
+function renderFilters() {
+  const cats = ['Todos', ...new Set(golpes.map(g => g.categoria).filter(Boolean))];
+  document.getElementById('filterTabs').innerHTML = cats.map(c => `
+    <button class="filter-tab ${filtroAtivo === c ? 'active' : ''}" onclick="setFiltro('${c}')">${c}</button>
+  `).join('');
+}
+
+function renderList() {
+  const lista = filtroAtivo === 'Todos' ? golpes : golpes.filter(g => g.categoria === filtroAtivo);
+  const el = document.getElementById('golpesList');
+
+  if (!lista.length) {
+    el.innerHTML = `
+      <div class="empty-state">
+        <span class="empty-icon">🥋</span>
+        <div class="empty-title">${filtroAtivo === 'Todos' ? 'Biblioteca Vazia' : 'Nenhum golpe aqui'}</div>
+        <div class="empty-sub">${filtroAtivo === 'Todos' ? 'Adicione seu primeiro golpe\nclicando em + GOLPE' : 'Tente outro filtro ou adicione um golpe desta categoria'}</div>
+      </div>`;
+    return;
+  }
+
+  el.innerHTML = lista.slice().reverse().map(g => {
+    const ytId = getYoutubeId(g.video);
+    const diffClass = g.dificuldade === 'Fácil' ? 'facil' : g.dificuldade === 'Médio' ? 'medio' : 'dificil';
+    const dataFmt = g.data ? new Date(g.data).toLocaleDateString('pt-BR', {day:'2-digit', month:'short'}) : '';
+
+    return `
+    <div class="golpe-card" id="card-${g.id}">
+      <div class="card-header" onclick="toggleCard('${g.id}')">
+        <div>
+          <div class="category-badge">${g.categoria || '—'}</div>
+        </div>
+        <div class="card-title-wrap">
+          <div class="card-title">${g.nome}</div>
+          <div class="card-meta">
+            <div class="diff-dot ${diffClass}"></div>
+            <span class="diff-label">${g.dificuldade || '—'}</span>
+            <span class="card-date">${dataFmt}</span>
+          </div>
+        </div>
+        <div class="card-chevron">⌄</div>
+      </div>
+      <div class="card-body">
+        ${ytId ? `<div class="video-wrap"><iframe src="https://www.youtube.com/embed/${ytId}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>` : ''}
+        <div class="card-content">
+          ${g.descricao ? `<div class="content-block"><div class="content-label">Passo a Passo</div><div class="content-text">${escHtml(g.descricao)}</div></div>` : ''}
+          ${g.anotacoes ? `<div class="content-block"><div class="content-label">Anotações</div><div class="content-text">${escHtml(g.anotacoes)}</div></div>` : ''}
+          ${!g.descricao && !g.anotacoes ? `<div class="content-text" style="color:var(--text-muted);font-style:italic">Nenhuma anotação adicionada.</div>` : ''}
+        </div>
+        <div class="card-actions">
+          <button class="btn-edit" onclick="editarGolpe('${g.id}')">Editar</button>
+          <button class="btn-delete" onclick="pedirDelete('${g.id}')">🗑</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function escHtml(t) {
+  return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+}
+
+function toggleCard(id) {
+  document.getElementById('card-' + id).classList.toggle('expanded');
+}
+
+function setFiltro(cat) {
+  filtroAtivo = cat;
+  render();
+}
+
+// ── MODAL ─────────────────────────────────────────────
+function openModal(golpe) {
+  editingId = golpe ? golpe.id : null;
+  document.getElementById('modalTitle').textContent = golpe ? 'Editar Golpe' : 'Novo Golpe';
+  document.getElementById('inputNome').value = golpe?.nome || '';
+  document.getElementById('inputCategoria').value = golpe?.categoria || '';
+  document.getElementById('inputVideo').value = golpe?.video || '';
+  document.getElementById('inputDescricao').value = golpe?.descricao || '';
+  document.getElementById('inputAnotacoes').value = golpe?.anotacoes || '';
+  diffSelecionada = golpe?.dificuldade || '';
+  updateDiffBtns();
+  document.getElementById('modalOverlay').classList.add('open');
+  setTimeout(() => document.getElementById('inputNome').focus(), 300);
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+  editingId = null;
+  diffSelecionada = '';
+}
+
+function selectDiff(d) {
+  diffSelecionada = d;
+  updateDiffBtns();
+}
+
+function updateDiffBtns() {
+  document.getElementById('btnFacil').className = 'diff-btn' + (diffSelecionada === 'Fácil' ? ' sel-facil' : '');
+  document.getElementById('btnMedio').className = 'diff-btn' + (diffSelecionada === 'Médio' ? ' sel-medio' : '');
+  document.getElementById('btnDificil').className = 'diff-btn' + (diffSelecionada === 'Difícil' ? ' sel-dificil' : '');
+}
+
+function salvarGolpe() {
+  const nome = document.getElementById('inputNome').value.trim();
+  if (!nome) { showToast('Digite o nome do golpe!'); return; }
+
+  const golpe = {
+    id: editingId || Date.now().toString(),
+    nome,
+    categoria: document.getElementById('inputCategoria').value,
+    dificuldade: diffSelecionada,
+    video: document.getElementById('inputVideo').value.trim(),
+    descricao: document.getElementById('inputDescricao').value.trim(),
+    anotacoes: document.getElementById('inputAnotacoes').value.trim(),
+    data: editingId ? (golpes.find(g => g.id === editingId)?.data || new Date().toISOString()) : new Date().toISOString(),
+  };
+
+  if (editingId) {
+    golpes = golpes.map(g => g.id === editingId ? golpe : g);
+  } else {
+    golpes.push(golpe);
+  }
+
+  save();
+  closeModal();
+  render();
+  showToast(editingId ? 'Golpe atualizado!' : 'Golpe adicionado!');
+}
+
+function editarGolpe(id) {
+  const g = golpes.find(g => g.id === id);
+  if (g) openModal(g);
+}
+
+// ── DELETE ─────────────────────────────────────────────
+function pedirDelete(id) {
+  deletingId = id;
+  document.getElementById('confirmOverlay').classList.add('open');
+}
+
+function closeConfirm() {
+  document.getElementById('confirmOverlay').classList.remove('open');
+  deletingId = null;
+}
+
+function confirmarDelete() {
+  golpes = golpes.filter(g => g.id !== deletingId);
+  save();
+  closeConfirm();
+  render();
+  showToast('Golpe removido!');
+}
+
+// ── TOAST ──────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ── CLOSE ON OVERLAY CLICK ─────────────────────────────
+document.getElementById('modalOverlay').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+document.getElementById('confirmOverlay').addEventListener('click', function(e) {
+  if (e.target === this) closeConfirm();
+});
+
+// ── BACKUP ─────────────────────────────────────────────
+function exportarJSON() {
+  if (!golpes.length) { showToast('Nenhum golpe para exportar!'); return; }
+  const data = JSON.stringify(golpes, null, 2);
+  const blob = new Blob([data], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const date = new Date().toISOString().slice(0,10);
+  a.href = url;
+  a.download = `bjjbook-backup-${date}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('Backup exportado!');
+}
+
+function importarJSON(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const dados = JSON.parse(e.target.result);
+      if (!Array.isArray(dados)) throw new Error();
+      golpes = dados;
+      save();
+      render();
+      showToast(`${dados.length} golpes restaurados!`);
+    } catch {
+      showToast('Arquivo inválido!');
+    }
+    event.target.value = '';
+  };
+  reader.readAsText(file);
+}
+
+// ── INIT ───────────────────────────────────────────────
+load();
+render();
+</script>
+</body>
+</html>
